@@ -272,7 +272,7 @@ endif()
 #------------------------------------------------------------------------------#
 # HWLOC configuration
 #------------------------------------------------------------------------------#
-option(Legion_USE_HWLOC "Use hwloc for topology awareness" OFF)
+option(Legion_USE_HWLOC "Use hwloc for topology awareness" ON)
 if(Legion_USE_HWLOC)
   find_package(HWLOC REQUIRED)
   install(FILES ${Legion_SOURCE_DIR}/cmake/FindHWLOC.cmake

@@ -67,6 +67,7 @@ CalcNewCurrentsTask::CalcNewCurrentsTask(LogicalPartition lp_pvt_wires,
  : IndexLauncher(CalcNewCurrentsTask::TASK_ID, launch_domain, TaskArgument(), arg_map,
                  Predicate::TRUE_PRED, false/*must*/, CalcNewCurrentsTask::MAPPER_ID)
 {
+
   RegionRequirement rr_out(lp_pvt_wires, 0/*identity*/, 
                              READ_WRITE, EXCLUSIVE, lr_all_wires);
   for (int i = 0; i < WIRE_SEGMENTS; i++)
@@ -687,6 +688,7 @@ static inline void update_voltages(LogicalRegion lr,
                                    const AccessorROfloat &fa_leakage,
                                    Context ctx, Runtime* rt)
 {
+  fprintf(stdout, "Entered %s\n", __FUNCTION__);
   for (PointInDomainIterator<1> itr(
         rt->get_index_space_domain(lr.get_index_space())); itr(); itr++)
   {

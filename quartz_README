@@ -1,0 +1,56 @@
+Notes from November 29, 2018
+
+
+How to build on LC systems (tested on Quartz)
+
+1) Build everything with GNU toolchain and OpenMPI. As per our tests, 
+   Intel compilers and MVAPICH/MVAPICH2 do not work correctly and result in errors.
+   We have tested with gcc/4.9.3 and openmpi/3.0.1. Note that later versions of GCC cause
+   issues with Legion's debug flags, especially gcc/8.1.0
+
+2) There is a possibility that SLURM exits with an error after successfully 
+   executing a Legion job. This may be happening because of missing OpenMPI 
+   bindings for srun. You can get around this issue by using "salloc" followed by "mpirun".    This has not been a reproducible issue, sometimes srun fails with an error 
+   after a successful execution of the Legion application, and sometimes it doesn't.  
+   
+3) Install GASNET and set the environment variable to the install directory.
+   For details on GASNET, see http://gasnet.lbl.gov/
+   Legion uses GASNET to create a gloablly addressable memory, which is in-turn used to 
+   communicate between Legion instances on different nodes/processors. It is not possible to
+   run a multi-node Legion program without GASNET. PSM, IBV or MPI conduits can be
+   used with GASNET. We have currently installed GASNET 1.32.0 in 
+   /usr/workspace/wsb/variorum/hackathon18/install
+
+   So, export GASNET=/usr/workspace/wsb/variorum/hackathon18/install" should do the trick. 
+
+4) Export LG_RT_DIR to point to the legion/runtime folder. In our case, this becomes:
+   export LG_RT_DIR=/usr/workspace/wsb/variorum/hackathon18/legion/runtime
+
+5) Check for HWLOC installation, and export the HWLOC environment variable to point
+   to the install directory. On quartz, we do the following:
+   export HWLOC=/usr
+
+6) For the Legion application of interest, edit the Makefile (NOT CMakeLists.txt) by adding the following:
+	USE_GASNET	= 1
+	CONDUIT		= mpi	
+	USE_HWLOC	= 1
+
+7) If you are running on a system such as quartz, where you have more than 64 logical cores (with SMT/hyperthreading), you will have to edit the legion_config.h file. Legion has some hardcoded parameters for number of total nodes and total cores per node, despite using HWLOC. While this should be reported on their GitHub and fixed by the Legion team in the future, currently, the way to get around it is to do the following: 
+
+Edit Line#70 of the $LG_RT_DIR/legion/legion_config.h to have MAX_NUM_PROCS to be 128. Note that this number has to be a multiple of 64. In our case, we edited the /usr/workspace/wsb/variorum/hackathon18/legion/runtime/legion/legion_config.h for this. Note that in the future, Line#66 that defines MAX_NUM_NODES to 1024 may need to be edited as well. We have not tested at this scale. 
+
+8) Make the application, and test in one of the following ways (example of the circuit application):
+	mpirun -np 2 ./circuit
+	srun -N2 -n2 ./circuit
+   If you are using the MPI conduit for GASNET (other options such as PSM and IBV haven't been reproducibly tested yet)
+	
+9) There are some command line options that we can pass to legion. We are still trying to understand these in detail, and have not been able to succesfully run on 2 nodes/4 sockets of quartz in a manner that the load is distributed correctly. These options are ll:cpu, ll:mp_cpu, ll:mp_threads. There is limited/unclear documentation and we are trying to understand how to use these to successfully run a distributed Legion application. 
+
+10) Legion also provides a profiling and visualization tool. This can be used as follows with the lg:prof and lf:prof_logfile options. 
+
+We tried the following:
+srun -N2 -n2 ./circuit -ll:cpu 36 -ll:mp_cpu 4 -ll:mp_threads 2 -lg:prof 2 -lg:prof_logfile prof_%.gz
+
+Files can be visualized by running a Python script and then opening index.html as follows: 
+$LG_RT_DIR/../tools/legion_prof.py prof_*.gz 
+ 

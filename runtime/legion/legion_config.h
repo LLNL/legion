@@ -67,7 +67,7 @@
 #endif
 // The maximum number of processors on a node
 #ifndef MAX_NUM_PROCS
-#define MAX_NUM_PROCS                   64
+#define MAX_NUM_PROCS                   128
 #endif
 // Maximum ID for an application task ID 
 #ifndef MAX_APPLICATION_TASK_ID
