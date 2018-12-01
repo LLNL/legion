@@ -50,8 +50,8 @@ void top_level_task(const Task *task,
 
   int num_loops = 200;
   int num_pieces = 100;
-//   int num_loops = 2;
-//   int num_pieces = 4;
+ //  int num_loops = 2;
+ //   int num_pieces = 4;
   int nodes_per_piece = 2;
   int wires_per_piece = 4;
   int pct_wire_in_piece = 95;
